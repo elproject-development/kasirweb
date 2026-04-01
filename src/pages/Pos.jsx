@@ -166,18 +166,19 @@ const Pos = () => {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: 'Struk Transaksi',
+    removeAfterPrint: true,
   });
 
   // Trigger print setelah state terupdate
   const [printTrigger, setPrintTrigger] = useState(false);
 
   useEffect(() => {
-    if (printTrigger && lastTransaction) {
+    if (printTrigger && lastTransaction && printRef.current) {
       // Small delay to ensure ref is ready
       const timer = setTimeout(() => {
         handlePrint();
         setPrintTrigger(false);
-      }, 100);
+      }, 400);
       return () => clearTimeout(timer);
     }
   }, [printTrigger, lastTransaction]);
@@ -243,7 +244,7 @@ const Pos = () => {
       setPaymentMethod('Cash');
       setCashierName('');
       // Trigger print setelah render
-      setTimeout(() => setPrintTrigger(true), 100);
+      setTimeout(() => setPrintTrigger(true), 300);
     } else {
       toast.error('Transaksi gagal!');
     }
@@ -899,7 +900,11 @@ const Pos = () => {
         </div>
       )}
       {/* Komponen untuk mencetak struk (tersembunyi) */}
-      <div style={{ display: 'none' }}>
+      <div style={{ 
+            position: 'absolute', 
+            left: '-9999px', 
+            top: 0 
+          }}>
         {lastTransaction && <PrintReceipt ref={printRef} transaction={lastTransaction} />}
       </div>
     </div>
