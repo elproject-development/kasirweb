@@ -44,7 +44,7 @@ const Header = ({ setSidebarOpen }) => {
             <button
               type="button"
               onClick={handleTogglePosMode}
-              className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
+              className={`flex items-center gap-2 px-2.5 py-2 md:px-3 rounded-xl border transition-all ${
                 posSearchOnly
                   ? 'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white border-purple-400/30 shadow-lg shadow-purple-500/30'
                   : 'bg-slate-800/60 text-purple-200 border-purple-500/20 hover:bg-slate-800'
@@ -52,14 +52,14 @@ const Header = ({ setSidebarOpen }) => {
               title="Mode POS: Produk hanya muncul saat cari"
             >
               <Search className="w-4 h-4" />
-              <span className="text-xs font-semibold">Cari Saja</span>
+              <span className="hidden sm:inline text-xs font-semibold">Cari Saja</span>
               <span
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-4 w-8 md:h-5 md:w-9 items-center rounded-full transition-colors ${
                   posSearchOnly ? 'bg-white/25' : 'bg-white/10'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-3.5 w-3.5 md:h-4 md:w-4 transform rounded-full bg-white transition-transform ${
                     posSearchOnly ? 'translate-x-4' : 'translate-x-1'
                   }`}
                 />
