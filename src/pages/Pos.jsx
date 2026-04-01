@@ -40,6 +40,7 @@ const Pos = () => {
   const [cashierName, setCashierName] = useState('');
   const [lastTransaction, setLastTransaction] = useState(null);
   const printRef = useRef();
+  const printAreaRef = useRef();
 
   const cartIconRef = useRef(null);
   const checkoutButtonRef = useRef(null);
@@ -164,16 +165,23 @@ const Pos = () => {
   }, []);
 
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
+    contentRef: printAreaRef,
     documentTitle: 'Struk Transaksi',
-    removeAfterPrint: true,
+    removeAfterPrint: false,
+    pageStyle: `
+      @page { margin: 0; }
+      html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 58mm; }
+    `,
   });
 
   // Trigger print setelah state terupdate
   const [printTrigger, setPrintTrigger] = useState(false);
 
   useEffect(() => {
-    if (printTrigger && lastTransaction && printRef.current) {
+    if (printTrigger && lastTransaction && printAreaRef.current) {
       // Small delay to ensure ref is ready
       const timer = setTimeout(() => {
         handlePrint();
@@ -905,7 +913,7 @@ const Pos = () => {
             left: '-9999px', 
             top: 0 
           }}>
-        <div id="print-area">
+        <div id="print-area" ref={printAreaRef}>
           {lastTransaction && <PrintReceipt ref={printRef} transaction={lastTransaction} />}
         </div>
       </div>

@@ -17,6 +17,7 @@ const Reports = () => {
   const [printTransactionIndex, setPrintTransactionIndex] = useState(0);
   const [printTrigger, setPrintTrigger] = useState(false);
   const printRef = useRef();
+  const printAreaRef = useRef();
 
   const totalPages = Math.ceil(transactions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -24,13 +25,20 @@ const Reports = () => {
   const currentTransactions = transactions.slice(startIndex, endIndex);
 
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
+    contentRef: printAreaRef,
     documentTitle: 'Struk Transaksi',
-    removeAfterPrint: true,
+    removeAfterPrint: false,
+    pageStyle: `
+      @page { margin: 0; }
+      html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 58mm; }
+    `,
   });
 
   useEffect(() => {
-    if (printTrigger && printTransaction) {
+    if (printTrigger && printTransaction && printAreaRef.current) {
       const timer = setTimeout(() => {
         handlePrint();
         setPrintTrigger(false);
@@ -425,7 +433,7 @@ const Reports = () => {
       )}
 
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
-        <div id="print-area">
+        <div id="print-area" ref={printAreaRef}>
           {printTransaction && (
             <PrintReceipt
               ref={printRef}
