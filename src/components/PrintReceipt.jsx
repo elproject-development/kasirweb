@@ -48,7 +48,7 @@ const PrintReceipt = forwardRef(({ transaction, index = 0 }, ref) => {
   };
 
   return (
-    <div ref={ref} className="p-4 font-mono text-sm" style={{ width: '300px' }}>
+    <div ref={ref} className="p-4 font-mono text-sm" style={{ width: '58mm', maxWidth: '58mm', boxSizing: 'border-box' }}>
       <div className="text-center">
         <h2 className="text-lg font-bold">{storeSettings.storeName}</h2>
         <table className="w-full">
