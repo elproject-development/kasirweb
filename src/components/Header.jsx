@@ -78,7 +78,7 @@ const Header = ({ setSidebarOpen }) => {
         {/* Right side */}
         <div className="flex items-center space-x-3">
           {/* Notification */}
-          <button className="relative p-2.5 text-purple-300 hover:bg-white/10 rounded-xl transition-all">
+          <button className="relative p-2.5 text-purple-300 hover:bg-white/10 rounded-full transition-all">
             <Bell size={20} />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full animate-pulse" />
           </button>
