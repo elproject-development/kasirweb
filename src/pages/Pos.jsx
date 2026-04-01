@@ -905,7 +905,9 @@ const Pos = () => {
             left: '-9999px', 
             top: 0 
           }}>
-        {lastTransaction && <PrintReceipt ref={printRef} transaction={lastTransaction} />}
+        <div id="print-area">
+          {lastTransaction && <PrintReceipt ref={printRef} transaction={lastTransaction} />}
+        </div>
       </div>
     </div>
   );

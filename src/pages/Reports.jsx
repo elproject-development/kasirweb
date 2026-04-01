@@ -26,6 +26,7 @@ const Reports = () => {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: 'Struk Transaksi',
+    removeAfterPrint: true,
   });
 
   useEffect(() => {
@@ -423,14 +424,16 @@ const Reports = () => {
         </div>
       )}
 
-      <div style={{ display: 'none' }}>
-        {printTransaction && (
-          <PrintReceipt
-            ref={printRef}
-            transaction={printTransaction}
-            index={printTransactionIndex}
-          />
-        )}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        <div id="print-area">
+          {printTransaction && (
+            <PrintReceipt
+              ref={printRef}
+              transaction={printTransaction}
+              index={printTransactionIndex}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
