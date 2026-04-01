@@ -3,8 +3,37 @@ import { motion } from 'framer-motion';
 import { Trash2, AlertTriangle, Loader2, Store, Save, Eye, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const PRODUCTS_API_URL = 'http://localhost:3001/products';
-const TRANSACTIONS_API_URL = 'http://localhost:3001/transactions';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+
+const STORE_SETTINGS_SINGLETON_ID = 1;
+
+const normalizeStoreSettingsFromDb = (row) => {
+  if (!row || typeof row !== 'object') return null;
+  return {
+    storeName: row.store_name ?? row.storename ?? row.storeName,
+    storeAddress: row.store_address ?? row.storeaddress ?? row.storeAddress,
+    storePhone: row.store_phone ?? row.storephone ?? row.storePhone,
+    receiptFooter: row.receipt_footer ?? row.receiptfooter ?? row.receiptFooter,
+    cashierList: Array.isArray(row.cashier_list)
+      ? row.cashier_list
+      : Array.isArray(row.cashierlist)
+        ? row.cashierlist
+        : Array.isArray(row.cashierList)
+          ? row.cashierList
+          : [],
+  };
+};
+
+const mapStoreSettingsToDb = (settings) => {
+  return {
+    id: STORE_SETTINGS_SINGLETON_ID,
+    store_name: settings.storeName,
+    store_address: settings.storeAddress,
+    store_phone: settings.storePhone,
+    receipt_footer: settings.receiptFooter,
+    cashier_list: Array.isArray(settings.cashierList) ? settings.cashierList : [],
+  };
+};
 
 const Settings = () => {
   const [deleting, setDeleting] = useState(false);
@@ -12,6 +41,7 @@ const Settings = () => {
   const [savingStore, setSavingStore] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [newCashierName, setNewCashierName] = useState('');
+  const [storeSettingsId, setStoreSettingsId] = useState(null);
   const [storeSettings, setStoreSettings] = useState(() => {
     const saved = localStorage.getItem('storeSettings');
     const defaults = {
@@ -33,6 +63,48 @@ const Settings = () => {
       return defaults;
     }
   });
+
+  useEffect(() => {
+    const loadFromDb = async () => {
+      try {
+        if (!isSupabaseConfigured) return;
+
+        const { data, error } = await supabase
+          .from('store_settings')
+          .select('*')
+          .eq('id', STORE_SETTINGS_SINGLETON_ID)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!data) return;
+
+        const normalized = normalizeStoreSettingsFromDb(data);
+        if (!normalized) return;
+
+        setStoreSettingsId(STORE_SETTINGS_SINGLETON_ID);
+        setStoreSettings((prev) => {
+          const next = {
+            ...prev,
+            ...normalized,
+            cashierList: Array.isArray(normalized.cashierList) && normalized.cashierList.length > 0
+              ? normalized.cashierList
+              : prev.cashierList,
+          };
+          try {
+            localStorage.setItem('storeSettings', JSON.stringify(next));
+            window.dispatchEvent(new CustomEvent('storeSettingsUpdated'));
+          } catch {
+            // ignore
+          }
+          return next;
+        });
+      } catch {
+        // ignore
+      }
+    };
+
+    loadFromDb();
+  }, []);
 
   const handleAddCashier = () => {
     const name = newCashierName.trim();
@@ -62,11 +134,30 @@ const Settings = () => {
   const handleSaveStoreSettings = async () => {
     setSavingStore(true);
     try {
-      localStorage.setItem('storeSettings', JSON.stringify(storeSettings));
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const payload = mapStoreSettingsToDb(storeSettings);
+      const { data, error } = await supabase
+        .from('store_settings')
+        .upsert(payload, { onConflict: 'id' })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      const normalized = normalizeStoreSettingsFromDb(data) || storeSettings;
+      const settingsToPersist = {
+        ...storeSettings,
+        ...normalized,
+        cashierList: Array.isArray(normalized.cashierList) ? normalized.cashierList : storeSettings.cashierList,
+      };
+
+      setStoreSettings(settingsToPersist);
+      localStorage.setItem('storeSettings', JSON.stringify(settingsToPersist));
       window.dispatchEvent(new CustomEvent('storeSettingsUpdated'));
       toast.success('Pengaturan toko berhasil disimpan!');
     } catch (err) {
-      toast.error('Gagal menyimpan pengaturan');
+      toast.error(err?.message || 'Gagal menyimpan pengaturan');
     } finally {
       setSavingStore(false);
     }
@@ -166,23 +257,20 @@ const Settings = () => {
   const executeDeleteAll = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(PRODUCTS_API_URL);
-      if (!res.ok) throw new Error('Gagal mengambil data produk');
-      const products = await res.json();
-      if (products.length === 0) {
-        toast.success('Tidak ada produk untuk dihapus');
-        return;
-      }
-      let successCount = 0, failCount = 0;
-      for (const product of products) {
-        try {
-          const deleteRes = await fetch(`${PRODUCTS_API_URL}/${product.id}`, { method: 'DELETE' });
-          deleteRes.ok ? successCount++ : failCount++;
-        } catch { failCount++; }
-      }
-      failCount === 0 ? toast.success(`Berhasil menghapus semua ${successCount} produk!`) : toast.error(`Berhasil menghapus ${successCount}, gagal ${failCount} produk`);
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const { count, error } = await supabase
+        .from('products')
+        .delete({ count: 'exact' })
+        .gt('id', 0);
+
+      if (error) throw error;
+      const deletedCount = typeof count === 'number' ? count : 0;
+      deletedCount === 0
+        ? toast.success('Tidak ada produk untuk dihapus')
+        : toast.success(`Berhasil menghapus semua ${deletedCount} produk!`);
     } catch (err) {
-      toast.error(err.message || 'Gagal menghapus produk');
+      toast.error(err?.message || 'Gagal menghapus produk');
     } finally {
       setDeleting(false);
     }
@@ -264,23 +352,20 @@ const Settings = () => {
   const executeDeleteAllTransactions = async () => {
     setDeletingTransactions(true);
     try {
-      const res = await fetch(TRANSACTIONS_API_URL);
-      if (!res.ok) throw new Error('Gagal mengambil data transaksi');
-      const transactions = await res.json();
-      if (transactions.length === 0) {
-        toast.success('Tidak ada transaksi untuk dihapus');
-        return;
-      }
-      let successCount = 0, failCount = 0;
-      for (const transaction of transactions) {
-        try {
-          const deleteRes = await fetch(`${TRANSACTIONS_API_URL}/${transaction.id}`, { method: 'DELETE' });
-          deleteRes.ok ? successCount++ : failCount++;
-        } catch { failCount++; }
-      }
-      failCount === 0 ? toast.success(`Berhasil menghapus semua ${successCount} transaksi!`) : toast.error(`Berhasil menghapus ${successCount}, gagal ${failCount} transaksi`);
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const { count, error } = await supabase
+        .from('transactions')
+        .delete({ count: 'exact' })
+        .gt('id', 0);
+
+      if (error) throw error;
+      const deletedCount = typeof count === 'number' ? count : 0;
+      deletedCount === 0
+        ? toast.success('Tidak ada transaksi untuk dihapus')
+        : toast.success(`Berhasil menghapus semua ${deletedCount} transaksi!`);
     } catch (err) {
-      toast.error(err.message || 'Gagal menghapus transaksi');
+      toast.error(err?.message || 'Gagal menghapus transaksi');
     } finally {
       setDeletingTransactions(false);
     }

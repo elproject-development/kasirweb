@@ -6,9 +6,9 @@ import PrintReceipt from '../components/PrintReceipt';
 import { useReactToPrint } from 'react-to-print';
 import toast from 'react-hot-toast';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
-const PRODUCTS_API_URL = 'http://localhost:3001/products';
-//const PRODUCTS_API_URL = 'https://2a60-111-92-172-1.ngrok-free.app:3001/products';
+
 
 const Pos = () => {
   const {
@@ -143,13 +143,19 @@ const Pos = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(PRODUCTS_API_URL);
+        if (!isSupabaseConfigured) {
+          throw new Error('Supabase belum dikonfigurasi');
+        }
 
-        if (!res.ok) throw new Error('Gagal mengambil data produk');
-        const data = await res.json();
-        setProducts(data);
+        const { data, error } = await supabase
+          .from('products')
+          .select('*');
+
+        if (error) throw error;
+        setProducts(Array.isArray(data) ? data : []);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err?.message || 'Gagal mengambil data produk');
+        setProducts([]);
       } finally {
         setProductsLoading(false);
       }

@@ -1118,6 +1118,177 @@
       "paymentMethod": "Transfer Bank",
       "cashReceived": null,
       "change": null
+    },
+    {
+      "id": 1774977195111,
+      "invoiceNumber": "TR-IDX010420260028",
+      "date": "2026-03-31T17:13:15.111Z",
+      "items": [
+        {
+          "id": 1,
+          "name": "Nasi Goreng",
+          "price": 25000,
+          "quantity": 1
+        },
+        {
+          "id": 2,
+          "name": "Mie Goreng Spesial remix noJustice",
+          "price": 20000,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 45000,
+      "discount": {
+        "value": 0,
+        "amount": 0
+      },
+      "ppn": {
+        "rate": 0,
+        "amount": 0
+      },
+      "total": 45000,
+      "cashierName": "Kasir 1",
+      "paymentMethod": "Cash",
+      "cashReceived": 100000,
+      "change": 55000
+    },
+    {
+      "id": 1774977606557,
+      "invoiceNumber": "TR-IDX010420260029",
+      "date": "2026-03-31T17:20:06.557Z",
+      "items": [
+        {
+          "id": 3,
+          "name": "Ayam Goreng",
+          "price": 30000,
+          "quantity": 1
+        },
+        {
+          "id": 2,
+          "name": "Mie Goreng Spesial remix noJustice",
+          "price": 20000,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 50000,
+      "discount": {
+        "value": 5,
+        "amount": 2500
+      },
+      "ppn": {
+        "rate": 11,
+        "amount": 5225
+      },
+      "total": 52725,
+      "cashierName": "Kasir 1",
+      "paymentMethod": "Transfer Bank",
+      "cashReceived": null,
+      "change": null
+    },
+    {
+      "id": 1774978153683,
+      "invoiceNumber": "TR-IDX010420260030",
+      "date": "2026-03-31T17:29:13.683Z",
+      "items": [
+        {
+          "id": 9,
+          "name": "Es Teh",
+          "price": 5000,
+          "quantity": 1
+        },
+        {
+          "id": 7,
+          "name": "Bakso",
+          "price": 18000,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 23000,
+      "discount": {
+        "value": 5,
+        "amount": 1150
+      },
+      "ppn": {
+        "rate": 11,
+        "amount": 2403.5
+      },
+      "total": 24253.5,
+      "cashierName": "EL PROJECT",
+      "paymentMethod": "Transfer Bank",
+      "cashReceived": null,
+      "change": null
+    },
+    {
+      "id": 1774980131910,
+      "invoiceNumber": "TR-IDX010420260028",
+      "date": "2026-03-31T18:02:11.910Z",
+      "items": [
+        {
+          "id": 1,
+          "name": "Nasi Goreng",
+          "price": 25000,
+          "quantity": 2
+        },
+        {
+          "id": 5,
+          "name": "Nasi Rames Spesial",
+          "price": 18000,
+          "quantity": 1
+        },
+        {
+          "id": 2,
+          "name": "Mie Goreng Spesial remix noJustice",
+          "price": 20000,
+          "quantity": 1
+        },
+        {
+          "id": 3,
+          "name": "Ayam Goreng",
+          "price": 30000,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 118000,
+      "discount": {
+        "value": 0,
+        "amount": 0
+      },
+      "ppn": {
+        "rate": 0,
+        "amount": 0
+      },
+      "total": 118000,
+      "cashierName": "EL PROJECT",
+      "paymentMethod": "Transfer Bank",
+      "cashReceived": null,
+      "change": null
+    },
+    {
+      "id": 1774988613985,
+      "invoiceNumber": "TR-IDX010420260032",
+      "date": "2026-03-31T20:23:33.985Z",
+      "items": [
+        {
+          "id": 1,
+          "name": "Nasi Goreng",
+          "price": 25000,
+          "quantity": 2
+        }
+      ],
+      "subtotal": 50000,
+      "discount": {
+        "value": 0,
+        "amount": 0
+      },
+      "ppn": {
+        "rate": 0,
+        "amount": 0
+      },
+      "total": 50000,
+      "cashierName": "EL PROJECT",
+      "paymentMethod": "Transfer Bank",
+      "cashReceived": null,
+      "change": null
     }
   ],
   "expenses": [

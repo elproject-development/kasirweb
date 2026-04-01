@@ -4,7 +4,8 @@ import { Package, Plus, Edit2, Trash2, Search, X, Loader2, Upload, Image as Imag
 import toast from 'react-hot-toast';
 import ExcelJS from 'exceljs';
 
-const API_URL = 'http://localhost:3001/products';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+
 const categories = ['Makanan', 'Minuman', 'Snack'];
 
 const Products = () => {
@@ -31,10 +32,15 @@ const Products = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error('Gagal mengambil data produk');
-      const data = await res.json();
-      setProducts(data);
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) throw error;
+      setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -107,34 +113,36 @@ const Products = () => {
 
     setSubmitting(true);
     try {
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const payload = {
+        name: formData.name,
+        price: parseInt(formData.price.replace(/\./g, '') || 0),
+        category: formData.category,
+        image: formData.image,
+      };
+
       if (editingProduct) {
-        const res = await fetch(`${API_URL}/${editingProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            price: parseInt(formData.price.replace(/\./g, '') || 0),
-            category: formData.category,
-            image: formData.image,
-          }),
-        });
-        if (!res.ok) throw new Error('Gagal memperbarui produk');
-        const updated = await res.json();
+        const { data, error } = await supabase
+          .from('products')
+          .update(payload)
+          .eq('id', editingProduct.id)
+          .select('*')
+          .single();
+
+        if (error) throw error;
+        const updated = data;
         setProducts(products.map(p => p.id === editingProduct.id ? updated : p));
         toast.success('Produk berhasil diperbarui!');
       } else {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            price: parseInt(formData.price.replace(/\./g, '') || 0),
-            category: formData.category,
-            image: formData.image,
-          }),
-        });
-        if (!res.ok) throw new Error('Gagal menambahkan produk');
-        const newProduct = await res.json();
+        const { data, error } = await supabase
+          .from('products')
+          .insert([payload])
+          .select('*')
+          .single();
+
+        if (error) throw error;
+        const newProduct = data;
         setProducts([...products, newProduct]);
         toast.success('Produk berhasil ditambahkan!');
       }
@@ -185,9 +193,15 @@ const Products = () => {
     if (!confirmed) return;
 
     try {
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
       const loadingId = toast.loading('Menghapus produk...');
-      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Gagal menghapus produk');
+
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       setProducts(products.filter(p => p.id !== id));
       toast.dismiss(loadingId);
       toast.success('Produk berhasil dihapus!');
@@ -212,6 +226,8 @@ const Products = () => {
 
     setImporting(true);
     try {
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
       const data = await file.arrayBuffer();
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(data);
@@ -262,17 +278,18 @@ const Products = () => {
         }
 
         try {
-          const res = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name,
-              category: categories.includes(category) ? category : 'Makanan',
-              price,
-              image: '',
-            }),
-          });
-          if (res.ok) {
+          const { error } = await supabase
+            .from('products')
+            .insert([
+              {
+                name,
+                category: categories.includes(category) ? category : 'Makanan',
+                price,
+                image: '',
+              },
+            ]);
+
+          if (!error) {
             successCount++;
           } else {
             failCount++;

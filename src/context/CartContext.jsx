@@ -1,11 +1,37 @@
 // src/contexts/CartContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
-const API_URL = 'http://localhost:3001/transactions';
+const normalizeTransactionFromDb = (row) => {
+  if (!row || typeof row !== 'object') return row;
+  return {
+    ...row,
+    invoiceNumber: row.invoiceNumber ?? row.invoicenumber,
+    cashierName: row.cashierName ?? row.cashiername,
+    paymentMethod: row.paymentMethod ?? row.paymentmethod,
+    cashReceived: row.cashReceived ?? row.cashreceived,
+  };
+};
 
+const mapTransactionToDb = (tx) => {
+  if (!tx || typeof tx !== 'object') return tx;
+  return {
+    id: tx.id,
+    invoicenumber: tx.invoicenumber ?? tx.invoiceNumber,
+    date: tx.date,
+    items: tx.items,
+    subtotal: tx.subtotal,
+    discount: tx.discount,
+    ppn: tx.ppn,
+    total: tx.total,
+    cashiername: tx.cashiername ?? tx.cashierName,
+    paymentmethod: tx.paymentmethod ?? tx.paymentMethod,
+    change: tx.change,
+  };
+};
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
@@ -29,12 +55,19 @@ export const CartProvider = ({ children }) => {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error('Gagal mengambil data');
-      const data = await res.json();
-      setTransactions(data);
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase belum dikonfigurasi');
+      }
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setTransactions(Array.isArray(data) ? data.map(normalizeTransactionFromDb) : []);
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'Gagal mengambil data');
     } finally {
       setLoading(false);
     }
@@ -105,20 +138,25 @@ export const CartProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTransaction),
-      });
-      if (!res.ok) throw new Error('Gagal menyimpan transaksi');
-      const saved = await res.json();
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase belum dikonfigurasi');
+      }
+
+      const payload = mapTransactionToDb(newTransaction);
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([payload])
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      const saved = normalizeTransactionFromDb(data);
       setTransactions(prev => [saved, ...prev]);
       clearCart();
-      // Reset diskon setelah transaksi
       setDiscount(0);
-      return saved; // kembalikan transaksi untuk dicetak
+      return saved;
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'Gagal menyimpan transaksi');
       return false;
     } finally {
       setLoading(false);

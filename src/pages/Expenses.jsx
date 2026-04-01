@@ -5,8 +5,7 @@ import { ChevronLeft, ChevronRight, Download, Plus, Trash2, Edit2, X, Calendar, 
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import toast from 'react-hot-toast';
-
-const EXPENSES_API_URL = 'http://localhost:3001/expenses';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -22,6 +21,8 @@ const Expenses = () => {
     month: (new Date().getMonth() + 1).toString(),
     year: new Date().getFullYear().toString(),
   });
+
+  
 
   const formatAmountInput = (value) => {
     const digits = String(value || '').replace(/\D/g, '');
@@ -73,12 +74,15 @@ const Expenses = () => {
   // Fetch expenses
   const fetchExpenses = async () => {
     try {
-      const res = await fetch(EXPENSES_API_URL);
-      if (!res.ok) throw new Error('Gagal mengambil data pengeluaran');
-      const data = await res.json();
-      // Sort by date descending
-      data.sort((a, b) => new Date(b.date) - new Date(a.date));
-      setExpenses(data);
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setExpenses(Array.isArray(data) ? data : []);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -168,23 +172,22 @@ const Expenses = () => {
     };
 
     try {
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
       if (editingExpense) {
-        // Update existing
-        const res = await fetch(`${EXPENSES_API_URL}/${editingExpense.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...editingExpense, ...expenseData }),
-        });
-        if (!res.ok) throw new Error('Gagal mengupdate pengeluaran');
+        const { error } = await supabase
+          .from('expenses')
+          .update({ ...expenseData })
+          .eq('id', editingExpense.id);
+
+        if (error) throw error;
         toast.success('Pengeluaran berhasil diupdate!');
       } else {
-        // Add new
-        const res = await fetch(EXPENSES_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(expenseData),
-        });
-        if (!res.ok) throw new Error('Gagal menambah pengeluaran');
+        const { error } = await supabase
+          .from('expenses')
+          .insert([expenseData]);
+
+        if (error) throw error;
         toast.success('Pengeluaran berhasil ditambahkan!');
       }
       
@@ -200,10 +203,14 @@ const Expenses = () => {
     if (!window.confirm('Yakin ingin menghapus pengeluaran ini?')) return;
     
     try {
-      const res = await fetch(`${EXPENSES_API_URL}/${id}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('Gagal menghapus pengeluaran');
+      if (!isSupabaseConfigured) throw new Error('Supabase belum dikonfigurasi');
+
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       toast.success('Pengeluaran berhasil dihapus!');
       fetchExpenses();
     } catch (err) {
