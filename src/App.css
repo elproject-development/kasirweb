@@ -219,3 +219,20 @@ button, a, input, select {
     background: rgba(17, 24, 39, 0.8);
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

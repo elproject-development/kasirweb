@@ -48,16 +48,16 @@ const PrintReceipt = forwardRef(({ transaction, index = 0 }, ref) => {
   };
 
   return (
-    <div ref={ref} className="p-4 font-mono text-sm" style={{ width: '300px' }}>
+    <div id="print-area" ref={ref} className="p-4 font-mono text-sm" style={{ width: '100%', maxWidth: '300px' }}>
       <div className="text-center">
         <h2 className="text-lg font-bold">{storeSettings.storeName}</h2>
         <table className="w-full">
           <tbody>
             <tr>
-              <p className="py-0.5 text-xs">{storeSettings.storeAddress}</p>
-            </tr>
-            <tr>
-              <p className="py-0.5 text-xs">Telp: {storeSettings.storePhone}</p>
+              <div className="text-xs">
+                <p className="py-0.5">{storeSettings.storeAddress}</p>
+                <p className="py-0.5">Telp: {storeSettings.storePhone}</p>
+              </div>
             </tr>
           </tbody>
         </table>
@@ -102,7 +102,8 @@ const PrintReceipt = forwardRef(({ transaction, index = 0 }, ref) => {
         <tbody>
           {transaction.items.map((item, idx) => (
             <tr key={idx}>
-              <td className="py-1 whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</td>
+              
+              <td className="py-1 break-words">{item.name}</td>
               <td className="py-1 text-center whitespace-nowrap">{item.quantity}</td>
               <td className="py-1 text-right whitespace-nowrap">{formatPrice(item.price * item.quantity)}</td>
             </tr>
