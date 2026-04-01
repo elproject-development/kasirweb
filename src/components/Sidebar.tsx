@@ -42,7 +42,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       >
         <div className="h-full bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 shadow-2xl shadow-purple-500/20 border-r border-purple-500/20">
           {/* Logo */}
-          <div className="flex items-center justify-between p-6 border-b border-purple-500/20">
+          <div className="flex items-center justify-between p-4 border-b border-purple-500/20">
             <div className={`flex items-center ${collapsed ? 'lg:justify-center lg:w-full lg:space-x-0' : 'space-x-3'}`}>
               <div className="w-8 h-8 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/50">
                 <Globe className="w-5 h-5 text-white" />

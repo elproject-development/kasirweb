@@ -38,6 +38,7 @@ const mapStoreSettingsToDb = (settings) => {
 const Settings = () => {
   const [deleting, setDeleting] = useState(false);
   const [deletingTransactions, setDeletingTransactions] = useState(false);
+  const [resettingLocal, setResettingLocal] = useState(false);
   const [savingStore, setSavingStore] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [newCashierName, setNewCashierName] = useState('');
@@ -161,6 +162,59 @@ const Settings = () => {
     } finally {
       setSavingStore(false);
     }
+  };
+
+  const handleResetLocalData = () => {
+    toast((t) => (
+      <div className="flex flex-col gap-3 p-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <p className="font-semibold text-white text-sm">Reset Total (Lokal)</p>
+            <p className="text-xs text-slate-400">Menghapus cache di browser</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-300">Ini akan menghapus data lokal seperti keranjang, mode POS, dan cache transaksi di UI. Lanjutkan?</p>
+        <div className="flex gap-2 justify-end">
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={() => toast.dismiss(t.id)}
+            className="px-4 py-2 text-xs font-medium text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-700"
+          >
+            Batal
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setResettingLocal(true);
+              try {
+                localStorage.removeItem('pos_cart');
+                localStorage.removeItem('posSearchOnly');
+                localStorage.removeItem('storeSettings');
+                try {
+                  window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+                  window.dispatchEvent(new CustomEvent('storeSettingsUpdated'));
+                  window.dispatchEvent(new CustomEvent('posSearchOnlyChanged', { detail: { value: false } }));
+                } catch {
+                  // ignore
+                }
+                toast.success('Reset lokal berhasil');
+              } catch {
+                toast.error('Gagal reset lokal');
+              } finally {
+                setResettingLocal(false);
+              }
+            }}
+            className="px-4 py-2 text-xs font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Reset
+          </motion.button>
+        </div>
+      </div>
+    ), { duration: Infinity, style: { background: 'linear-gradient(135deg, #1e293b 0%, #450a0a 100%)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', padding: '16px', minWidth: '300px' } });
   };
 
   // Sample transaction untuk preview
@@ -357,13 +411,18 @@ const Settings = () => {
       const { count, error } = await supabase
         .from('transactions')
         .delete({ count: 'exact' })
-        .gt('id', 0);
+        .not('id', 'is', null);
 
       if (error) throw error;
       const deletedCount = typeof count === 'number' ? count : 0;
       deletedCount === 0
         ? toast.success('Tidak ada transaksi untuk dihapus')
         : toast.success(`Berhasil menghapus semua ${deletedCount} transaksi!`);
+      try {
+        window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+      } catch {
+        // ignore
+      }
     } catch (err) {
       toast.error(err?.message || 'Gagal menghapus transaksi');
     } finally {

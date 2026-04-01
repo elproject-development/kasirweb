@@ -49,6 +49,17 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    const handler = () => {
+      setTransactions([]);
+      setError(null);
+      fetchTransactions();
+    };
+
+    window.addEventListener('transactionsUpdated', handler);
+    return () => window.removeEventListener('transactionsUpdated', handler);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('pos_cart', JSON.stringify(cart));
   }, [cart]);
 
@@ -68,6 +79,7 @@ export const CartProvider = ({ children }) => {
       setTransactions(Array.isArray(data) ? data.map(normalizeTransactionFromDb) : []);
     } catch (err) {
       setError(err?.message || 'Gagal mengambil data');
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
