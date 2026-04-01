@@ -739,11 +739,11 @@ const Pos = () => {
               }
             `}</style>
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-6 py-5">
+            <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Pembayaran</h3>
-                  <p className="text-sm text-blue-100">Total: {formatPrice(total)}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Pembayaran</h3>
+                  <p className="text-xs sm:text-sm text-blue-100">Total: {formatPrice(total)}</p>
                 </div>
                 <button
                   onClick={() => setShowPaymentModal(false)}
@@ -755,13 +755,13 @@ const Pos = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {/* Nama Kasir */}
-              <label className="block text-sm font-medium text-purple-300 mb-2">Nama Kasir</label>
+              <label className="block text-xs sm:text-sm font-medium text-purple-300 mb-2">Nama Kasir</label>
               <select
                 value={cashierName}
                 onChange={(e) => setCashierName(e.target.value)}
-                className="pos-cashier-select w-full px-4 py-3 pr-10 bg-slate-700 border border-purple-500/30 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-5"
+                className="pos-cashier-select w-full px-3 py-2.5 pr-10 sm:px-4 sm:py-3 bg-slate-700 border border-purple-500/30 rounded-xl text-sm sm:text-base text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-4 sm:mb-5"
               >
                 <option value="">Pilih kasir</option>
                 {cashierOptions.map((name) => (
@@ -770,8 +770,8 @@ const Pos = () => {
               </select>
 
               {/* Metode Pembayaran */}
-              <label className="block text-sm font-medium text-purple-300 mb-2">Metode Pembayaran</label>
-              <div className="grid grid-cols-3 gap-2 mb-5">
+              <label className="block text-xs sm:text-sm font-medium text-purple-300 mb-2">Metode Pembayaran</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 sm:mb-5">
                 {[
                   { value: 'Cash', icon: Banknote, label: 'Tunai' },
                   { value: 'Transfer Bank', icon: Wallet, label: 'Transfer Bank' },
@@ -780,18 +780,18 @@ const Pos = () => {
                   <button
                     key={method.value}
                     onClick={() => setPaymentMethod(method.value)}
-                    className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
+                    className={`p-2 sm:p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 leading-tight min-h-[64px] sm:min-h-[76px] ${
                       paymentMethod === method.value
                         ? 'border-purple-500 bg-purple-500/20'
                         : 'border-purple-500/30 hover:border-purple-500/50 bg-slate-700/50'
                     }`}
                   >
-                    <method.icon className={`w-5 h-5 ${
+                    <method.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${
                       paymentMethod === method.value
                         ? 'text-purple-300'
                         : 'text-purple-400'
                     }`} />
-                    <span className={`text-xs font-medium ${
+                    <span className={`text-[11px] sm:text-xs font-medium text-center ${
                       paymentMethod === method.value
                         ? 'text-purple-200'
                         : 'text-purple-400'
@@ -805,7 +805,7 @@ const Pos = () => {
               {/* Input Uang Tunai */}
               {paymentMethod === 'Cash' && (
                 <div className="mb-5">
-                  <label className="block text-sm font-medium text-purple-300 mb-2">Uang Tunai</label>
+                  <label className="block text-xs sm:text-sm font-medium text-purple-300 mb-2">Uang Tunai</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 font-medium">Rp</span>
                     <input
@@ -813,7 +813,7 @@ const Pos = () => {
                       inputMode="numeric"
                       value={cashReceived}
                       onChange={(e) => handleCashChange(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-slate-700 border border-purple-500/30 rounded-xl text-lg font-semibold text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-700 border border-purple-500/30 rounded-xl text-base sm:text-lg font-semibold text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="0"
                     />
                   </div>
@@ -823,12 +823,13 @@ const Pos = () => {
                       <button
                         key={amount}
                         onClick={() => setCashReceived(formatCurrencyInput(amount.toString()))}
-                        className="flex-1 py-2 text-xs font-medium bg-slate-700 hover:bg-slate-600 text-purple-300 border border-purple-500/30 rounded-lg transition-colors"
+                        className="flex-1 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium bg-slate-700 hover:bg-slate-600 text-purple-300 border border-purple-500/30 rounded-lg transition-colors"
                       >
                         {formatPrice(amount)}
                       </button>
                     ))}
                   </div>
+
                   {cashReceived && !isNaN(parseFloat(cashReceived.replace(/\./g, ''))) && (
                     <div className={`mt-3 p-3 rounded-xl ${
                       parseFloat(cashReceived.replace(/\./g, '')) >= total
